@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nina-mcp"
+version = "0.1.0"
+description = "MCP server exposing N.I.N.A. astrophotography control (via ninaAPI) to MCP agents"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.28.0",
+    "httpx>=0.28.0",
+]
+
+[project.scripts]
+nina-mcp = "nina_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
