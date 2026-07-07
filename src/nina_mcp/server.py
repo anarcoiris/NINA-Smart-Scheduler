@@ -16,7 +16,21 @@ from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
 
-from .tools import camera, equipment, mount, placeholders, sequencer, target_scheduler
+from .tools import (
+    camera,
+    dome,
+    equipment,
+    filterwheel,
+    flatdevice,
+    focuser,
+    guider,
+    mount,
+    placeholders,
+    rotator,
+    sequencer,
+    switch,
+    target_scheduler,
+)
 
 mcp = FastMCP(
     "nina-mcp",
@@ -24,25 +38,31 @@ mcp = FastMCP(
         "Tools for controlling N.I.N.A. (Nighttime Imaging 'N' Astronomy) astrophotography "
         "software via its Advanced API plugin (ninaAPI). Always check "
         "nina_get_all_equipment_info first to see what's connected. Connect equipment with "
-        "nina_connect_device before using device-specific tools. Mount, camera, and sequencer "
-        "tools are fully implemented; filter wheel/focuser/rotator/dome/guider/safety "
-        "monitor/weather/switch/flat-device have working status reads but their action tools "
-        "are placeholders -- calling one raises a clear error naming the real endpoint to wire "
-        "up. Target Scheduler has no REST control surface upstream; ts_* tools read/edit its "
-        "SQLite database directly and ts_recent_events polls its status events -- see "
-        "tools/target_scheduler.py for the full explanation."
+        "nina_connect_device before using device-specific tools. All tools for camera, mount, "
+        "sequencer, filter wheel, focuser, rotator, dome, guider, switch, flat device, and "
+        "weather/safety monitors are implemented. Target Scheduler has no REST control surface "
+        "upstream; ts_* tools read/edit its SQLite database directly and ts_recent_events polls "
+        "its status events -- see tools/target_scheduler.py for the full explanation."
     ),
 )
 
-# Core, fully implemented.
+# Core & Equipment Modules.
 equipment.register(mcp)
 mount.register(mcp)
 camera.register(mcp)
 sequencer.register(mcp)
 target_scheduler.register(mcp)
+filterwheel.register(mcp)
+focuser.register(mcp)
+rotator.register(mcp)
+dome.register(mcp)
+guider.register(mcp)
+switch.register(mcp)
+flatdevice.register(mcp)
 
-# Non-core: status reads work, action tools are placeholders.
+# Status-only placeholders (weather, safety monitor).
 placeholders.register(mcp)
+
 
 
 def main() -> None:
