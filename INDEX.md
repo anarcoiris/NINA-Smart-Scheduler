@@ -142,34 +142,71 @@ this is not a REST wrapper like the others.
 | `ts_describe_table` | List a table's columns (name, type, nullability, PK) |
 | `ts_read_table` | Read rows, optionally filtered by one column=value |
 | `ts_update_cell` | Update one column on one row (gated by `TS_ALLOW_WRITES`) |
+| `ts_set_project_priority` | Set priority on a project row in database (gated by `TS_ALLOW_WRITES`) |
+| `ts_set_project_enabled` | Enable/disable a project row in database (gated by `TS_ALLOW_WRITES`) |
+| `ts_toggle_target_enabled` | Enable/disable a target row in database (gated by `TS_ALLOW_WRITES`) |
 | `ts_recent_events` | Recent TS-* status events (wait-start, target-start, etc.) forwarded via NINA |
 
-### Placeholders (`tools/placeholders.py`)
+### Filter Wheel (`tools/filterwheel.py`)
 
-Status reads are fully working; action tools raise
-`NotImplementedPlaceholder` naming the real endpoint (see
-[Extending a placeholder](CONTRIBUTING.md#extending-a-placeholder-into-a-full-implementation)).
+| Tool | Does |
+|---|---|
+| `nina_filterwheel_info` | Status and available filters list |
+| `nina_filterwheel_change_filter` | Change the active filter |
+
+### Focuser (`tools/focuser.py`)
+
+| Tool | Does |
+|---|---|
+| `nina_focuser_info` | Status, temperature, and position steps |
+| `nina_focuser_move` | Move absolute focus position steps |
+| `nina_focuser_stop` | Stop any current focuser move |
+
+### Rotator (`tools/rotator.py`)
+
+| Tool | Does |
+|---|---|
+| `nina_rotator_info` | Sky and mechanical rotation angles |
+| `nina_rotator_move` | Rotate to a target sky angle |
+| `nina_rotator_stop` | Stop rotator movement |
+
+### Dome (`tools/dome.py`)
+
+| Tool | Does |
+|---|---|
+| `nina_dome_info` | Azimuth, shutter status, follows-mount status |
+| `nina_dome_open` | Open dome shutter |
+| `nina_dome_close` | Close dome shutter |
+| `nina_dome_slew` | Slew dome to target azimuth angle |
+
+### Guider (`tools/guider.py`)
+
+| Tool | Does |
+|---|---|
+| `nina_guider_info` | Guide status and RMS errors |
+| `nina_guider_start` | Start autoguider loop, optionally calibrating |
+| `nina_guider_stop` | Stop guiding |
+
+### Switch (`tools/switch.py`)
+
+| Tool | Does |
+|---|---|
+| `nina_switch_info` | Status and index details of all switches |
+| `nina_switch_set` | Set switch value by index |
+
+### Flat Device (`tools/flatdevice.py`)
+
+| Tool | Does |
+|---|---|
+| `nina_flatdevice_info` | Brightness, light power, cover open/closed state |
+| `nina_flatdevice_set_light` | Turn flat panel light on or off |
+
+### Status-Only Placeholders (`tools/placeholders.py`)
 
 | Tool | Status |
 |---|---|
-| `nina_filterwheel_info` | ✅ working |
-| `nina_filterwheel_change_filter` | 🔶 placeholder |
-| `nina_focuser_info` | ✅ working |
-| `nina_focuser_move` | 🔶 placeholder |
-| `nina_rotator_info` | ✅ working |
-| `nina_rotator_move` | 🔶 placeholder |
-| `nina_dome_info` | ✅ working |
-| `nina_dome_open` | 🔶 placeholder |
-| `nina_guider_info` | ✅ working |
-| `nina_guider_start` | 🔶 placeholder |
 | `nina_safetymonitor_info` | ✅ working |
 | `nina_weather_info` | ✅ working |
-| `nina_switch_info` | ✅ working |
-| `nina_switch_set` | 🔶 placeholder |
-| `nina_flatdevice_info` | ✅ working |
-| `nina_flatdevice_set_light` | 🔶 placeholder |
 
-**Total: 58 tools** — 51 fully working (6 equipment + 10 mount + 10 camera +
-11 sequencer + 5 Target Scheduler + 9 placeholder-module status reads), and
-7 placeholder stubs awaiting implementation (filter wheel, focuser, rotator,
-dome, guider, switch, flat device — one action stub each).
+**Total: 66 tools** — all fully working (6 equipment + 10 mount + 10 camera + 11 sequencer + 8 Target Scheduler + 2 filter wheel + 3 focuser + 3 rotator + 4 dome + 3 guider + 2 switch + 2 flat device + 2 status-only).
+

@@ -2,11 +2,10 @@
 
 An MCP server that gives an AI agent (your openclaw agent, Claude, or anything
 else that speaks MCP) control over **N.I.N.A.** (Nighttime Imaging 'N'
-Astronomy) — mount, camera, and the Advanced Sequencer are fully implemented;
-Target Scheduler is covered too, with an important caveat explained below;
-everything else (filter wheel, focuser, rotator, dome, guider, safety
-monitor, weather, switch, flat device) has working status reads and clearly
-marked placeholders for control actions.
+Astronomy). Mount, camera, sequencer, filter wheel, focuser, rotator, dome, guider,
+switches, flat panels, and target scheduling are all fully implemented.
+Safety monitor and weather stations are exposed as status reads.
+
 
 It talks to NINA over HTTP via the community **[ninaAPI]** plugin (also
 called "Advanced API" in the NINA plugin list) — this MCP server doesn't
@@ -132,19 +131,14 @@ So `tools/target_scheduler.py` gives you the two things that actually exist:
    an agent editing it. `ts_recent_events` polls the live status events
    from (1).
 
-If you want richer, typed TS tools (e.g. `ts_set_project_priority`), open
-your real `schedulerdb.sqlite` in any SQLite browser, confirm the exact
-table/column names for your installed TS version, and add typed wrappers on
-top of the generic ones — same pattern as `mount.py`/`camera.py`.
+To support Target Scheduler automation, we have implemented typed database write
+tools (`ts_set_project_priority`, `ts_set_project_enabled`, and `ts_toggle_target_enabled`)
+that dynamically discover the active tables and columns (supporting both TS4 and TS5).
+`ts_recent_events` polls the live status events from (1).
 
-### Placeholders (`tools/placeholders.py`)
+### Status-Only Modules (`tools/placeholders.py`)
 
-Filter wheel, focuser, rotator, dome, guider, safety monitor, weather,
-switch, and flat device each get a working `*_info` status read (cheap,
-already verified against ninaAPI's source). Their action tools
-(`nina_focuser_move`, `nina_dome_open`, etc.) are stubs that raise a clear
-error naming the exact, verified REST endpoint and query parameters to wire
-up — same pattern as the core modules, just not built out yet.
+Safety monitor and weather stations do not have REST control surfaces upstream, so they only expose `*_info` status reads.
 
 ## Architecture
 
@@ -159,8 +153,15 @@ src/nina_mcp/
     mount.py             full mount control
     camera.py            full camera control
     sequencer.py         full sequencer control
-    target_scheduler.py  DB + event-based TS tools (see caveat above)
-    placeholders.py       status reads + stubs for everything else
+    target_scheduler.py  DB + event-based TS tools (with schema discovery)
+    filterwheel.py       filter wheel control
+    focuser.py           focuser movement and configuration
+    rotator.py           sky rotator control
+    dome.py              observatory dome control
+    guider.py            autoguiding control
+    switch.py            switch/relay control
+    flatdevice.py        flat panel illumination and cover control
+    placeholders.py      status-only equipment (weather, safety monitor)
 test_client.py          minimal standalone MCP client for manual testing
 ```
 
@@ -168,7 +169,7 @@ Every endpoint path and query parameter here was confirmed against ninaAPI's
 own C# source (`WebService/V2/...`), not guessed from third-party docs —
 I pulled the repo and grepped the `[Route(...)]` attributes directly. The one
 thing that genuinely doesn't exist upstream is Target Scheduler's REST API,
-which is why that module takes a different approach.
+which is why that module takes a database-directed approach.
 
 ## Safety notes
 
