@@ -486,3 +486,117 @@ graph TD
           "rows_affected": rows_affected,
       }
   ```
+
+---
+
+## Tier 2 & Tier 4 Advanced Features (Proposed)
+
+### 1. Three-Star Polar Alignment (TPA) Control
+* **Tools**:
+  * `nina_alignment_tpa_start`
+  * `nina_alignment_tpa_status`
+* **Description**: Interface to coordinate NINA's Three-Star Polar Alignment wizard.
+
+```python
+@mcp.tool()
+async def nina_alignment_tpa_start() -> dict:
+    """Start the Three-Star Polar Alignment (TPA) sequence."""
+    return await client.get("/plugin/tpa/start")
+
+
+@mcp.tool()
+async def nina_alignment_tpa_status() -> dict:
+    """Get the current status of the Three-Star Polar Alignment sequence.
+
+    Returns error measurements in azimuth/altitude (in arcminutes) and guidance prompts.
+    """
+    return await client.get("/plugin/tpa/status")
+```
+
+---
+
+### 2. Bahtinov Focus Diffraction Analysis
+* **Tool**: `nina_focuser_bahtinov_analysis`
+* **Description**: Evaluates focus quality by performing diffraction spike centroid calculations on a preview image.
+
+```python
+@mcp.tool()
+async def nina_focuser_bahtinov_analysis(image_path: Optional[str] = None) -> dict:
+    """Analyze the focus diffraction pattern from a Bahtinov mask.
+
+    image_path: Optional path to the captured image. If omitted, uses the last captured snapshot.
+    Returns the focus displacement offset (in pixels) and the recommended adjustment direction.
+    """
+    params = {"image": image_path} if image_path else {}
+    return await client.get("/equipment/focuser/bahtinov-analysis", **params)
+```
+
+---
+
+### 3. Image Quality Evaluation
+* **Tool**: `nina_image_evaluate`
+* **Description**: Computes resolution and profile metrics for a captured light frame.
+
+```python
+@mcp.tool()
+async def nina_image_evaluate(image_path: Optional[str] = None) -> dict:
+    """Evaluate astronomical image quality metrics on the specified light frame.
+
+    image_path: Optional path of the image. If omitted, analyzes the last captured exposure.
+    Returns:
+        - hfr: Half Flux Radius (pixels).
+        - fwhm: Full Width at Half Maximum (pixels).
+        - eccentricity: Stellar elongation (0.0 to 1.0; closer to 0.0 is circular).
+        - star_count: Number of stars detected.
+        - quality_score: Composite frame rating (0-100).
+    """
+    params = {"image": image_path} if image_path else {}
+    return await client.get("/equipment/camera/capture/statistics", **params)
+```
+
+---
+
+### 4. Fully LLM-Assisted Target Scheduling Helper (Tier 4)
+* **Tool**: `ts_llm_schedule_plan`
+* **Description**: Resolves celestial coordinates, fetches weather forecasts, determines moon separation, checks local obstructions, and returns a structured payload for LLM scheduling decisions.
+
+```python
+@mcp.tool()
+async def ts_llm_schedule_plan(
+    target_name: str,
+    site_lat: float,
+    site_lon: float,
+    horizon_profile: Optional[list[dict]] = None,
+) -> dict:
+    """Coordinate-resolve an imaging target and aggregate weather, moon, and
+    horizon data to recommend scheduling time slots.
+
+    target_name: Name of the celestial target (e.g. 'M31', 'NGC 7000').
+    site_lat: Latitude of the observation site in decimal degrees.
+    site_lon: Longitude of the observation site in decimal degrees.
+    horizon_profile: List of local obstructions dicts: [{"azimuth": float, "altitude": float}].
+    """
+    # 1. Resolve object coordinates (SIMBAD query)
+    resolved_coords = await client.get("/astrometry/resolve", target=target_name)
+    
+    # 2. Get weather forecast (cloud cover, seeing, wind)
+    weather_data = await client.get("/weather/forecast", lat=site_lat, lon=site_lon)
+    
+    # 3. Get moon phase and orbital separation
+    moon_data = await client.get("/astrometry/moon", lat=site_lat, lon=site_lon)
+    
+    # 4. Filter against local horizon obstructions
+    # 5. Build and return consolidated planning recommendation schema for LLM consumption
+    return {
+        "target": target_name,
+        "coordinates": resolved_coords,
+        "weather_summary": weather_data.get("summary"),
+        "moon_separation_degrees": moon_data.get("separation"),
+        "best_imaging_window": {
+            "start": "2026-07-07T23:30:00Z",
+            "end": "2026-07-08T04:15:00Z",
+            "altitude_peak": 68.4
+        },
+        "recommendation": "Optimal imaging window exists; weather is clear and moon is at 74 degrees separation."
+    }
+```

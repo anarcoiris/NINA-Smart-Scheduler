@@ -224,3 +224,38 @@ async def test_ts_update_cell_success(temp_scheduler_db, monkeypatch):
   * Ensure all 58+ active tools are listed correctly in [INDEX.md](file:///C:/Users/soyko/Documents/nina-mcp/INDEX.md) and [README.md](file:///C:/Users/soyko/Documents/nina-mcp/README.md).
   * Confirm that invariants described in [CONTRIBUTING.md](file:///C:/Users/soyko/Documents/nina-mcp/CONTRIBUTING.md) are strictly preserved.
 
+---
+
+## Phase 6: Layered Domain Roadmap & AI Features (Roadmap Expansion)
+
+* **Roadmap Goal**: Transition the `nina-mcp` server from a standard hardware relay into an intelligent autonomous co-pilot. We will implement structural layers for advanced optical analysis, geometric alignment, safety guardrails, and multi-data-source scheduling decisions.
+
+```
++--------------------------------------------------------------------------------+
+| Tier 4: Orchestration & AI Planning (Weather, Orbit, Local Obstr., DSO)       |
++--------------------------------------------------------------------------------+
+| Tier 3: Safety Guardrails Daemon (Auto-Halt, Altitude Limits, weather alerts)  |
++--------------------------------------------------------------------------------+
+| Tier 2: FWHM/Eccentricity star eval, TPA alignment wizard, Bahtinov focus      |
++--------------------------------------------------------------------------------+
+| Tier 1: Core API & DB Drivers (FastMCP wrapper & SQLite)                       |
++--------------------------------------------------------------------------------+
+```
+
+* [ ] **Task 6.1: Tier 2 - Three-Star Polar Alignment & Bahtinov Focus Integration**
+  * Start and poll the Three-Star Polar Alignment plugin via `GET /plugin/tpa/start` and `GET /plugin/tpa/status` to guide the user/mount automatically.
+  * Extract pixel spikes from previews to build a Bahtinov mask diffraction profile, returning numerical displacement offsets and step suggestions.
+
+* [ ] **Task 6.2: Tier 2 - Astronomical Image Evaluation**
+  * Read FWHM (Full Width at Half Maximum) and HFR (Half Flux Radius) from captured subs.
+  * Implement star elongation/eccentricity checks to measure tracking performance and guide-star quality.
+
+* [ ] **Task 6.3: Tier 4 - LLM-Assisted Target Scheduling with Multi-Source Integration**
+  * Create `ts_llm_schedule_plan` to consolidate:
+    1. **Astrometry**: Coordinate resolution of catalog names (SIMBAD/NED).
+    2. **Weather**: Seeing, cloud cover, and wind limits (Clear Outside/OpenWeather).
+    3. **Moon Separation**: Phase and angular distance checks.
+    4. **Horizon Profiles**: Parsing `.horizon` files representing local tree/building coordinates.
+  * Construct a unified planning JSON payload that allows LLMs to formulate optimal target scheduler adjustments directly.
+
+

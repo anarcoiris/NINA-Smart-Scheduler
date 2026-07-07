@@ -288,11 +288,73 @@ The script is located at:
 
 ---
 
-## 5. Next Steps for nina-mcp Integration
+## 5. Congruent Layered Domain Model
 
-Using this verified API routing design and schema knowledge, developers can easily wire up control functions.
+To build a professional, industrial-grade MCP control surface, all server capabilities are organized into a strict **4-Tier Congruent Layered Domain**:
 
-1. **Implement Placeholders**:
-   Update [placeholders.py](file:///C:/Users/soyko/Documents/nina-mcp/src/nina_mcp/tools/placeholders.py) to replace NotImplemented stubs with functional `client.get()` calls using the verified route syntax.
-2. **Utilize Database Helpers**:
-   Leverage [ts_db.py](file:///C:/Users/soyko/Documents/nina-mcp/src/nina_mcp/ts_db.py) and [target_scheduler.py](file:///C:/Users/soyko/Documents/nina-mcp/src/nina_mcp/tools/target_scheduler.py) to query and update cells safely using the metadata validation.
+```
++-----------------------------------------------------------------------+
+|  Tier 4: Orchestration & AI Planning (LLM scheduling, multi-data)     |
++-----------------------------------------------------------------------+
+|  Tier 3: Safety & Coordination (Weather daemons, horizon, meridian)    |
++-----------------------------------------------------------------------+
+|  Tier 2: Measurement & Analysis (FWHM/eccentricity, TPA, Bahtinov)    |
++-----------------------------------------------------------------------+
+|  Tier 1: Device REST Wrapper (Direct HTTP calls, SQLite binding)     |
++-----------------------------------------------------------------------+
+```
+
+### Tier 1: Device REST & DB Wrapper
+* Exposes direct API routes and database reads/writes.
+* Maps primitives, handles C# enum conversions, and parses JSON envelopes.
+* *Components*: [camera.py](file:///C:/Users/soyko/Documents/nina-mcp/src/nina_mcp/tools/camera.py), [mount.py](file:///C:/Users/soyko/Documents/nina-mcp/src/nina_mcp/tools/mount.py), [ts_db.py](file:///C:/Users/soyko/Documents/nina-mcp/src/nina_mcp/ts_db.py).
+
+### Tier 2: Advanced Analysis & Measurement
+* Combines sensor readings with local calculations and external algorithms.
+* Provides metrics on alignment quality, focus sharpness, and image quality.
+* *Features*: Three-Star Polar Alignment tracking, Bahtinov mask diffraction calculators, FWHM/eccentricity star metrics.
+
+### Tier 3: Safety & Coordination
+* Implements background daemons evaluating local telemetry to protect telescope hardware.
+* Enforces horizon limits, weather safety halts, and meridian flip coordination.
+
+### Tier 4: Orchestration & AI Planning
+* Aggregates multiple astronomical and weather sources.
+* Feeds resolved transit plans, object parameters, and cloud coverage maps into the LLM scheduling system.
+
+---
+
+## 6. Advanced Feature Research Specifications
+
+### 6.1 Three-Star Polar Alignment (TPA) API Research
+* **Goal**: Automate polar alignment without requiring the N.I.N.A. UI.
+* **Endpoints to Verify**: 
+  * `GET /plugin/tpa/start`: Starts the alignment wizard.
+  * `GET /plugin/tpa/status`: Returns current state (`Idle`, `Slewing`, `Solving`, `AwaitingAdjustment`), error in azimuth (arcminutes), and error in altitude (arcminutes).
+  * `GET /plugin/tpa/stop`: Aborts the wizard.
+* **C# Mapping**: Inspect the `NINA.Plugins.PolarAlignment` namespace to confirm Nancy routes.
+
+### 6.2 Bahtinov Focus Diffraction Analysis
+* **Goal**: Measure focusing accuracy using diffraction spike analysis.
+* **Concept**: When a Bahtinov mask is placed over the optics, the central diffraction spike shifts based on focus error.
+* **API / Logic Mapping**:
+  * Extract pixel positions of diffraction spikes from preview images.
+  * Suggest step corrections based on the displacement of the central spike relative to the lateral X-spikes.
+
+### 6.3 Image Quality Evaluation
+* **Goal**: Assess and score captured frames based on astronomical quality indicators.
+* **Metrics**:
+  * **HFR (Half Flux Radius)**: Indicates focus/seeing drift.
+  * **FWHM (Full Width at Half Maximum)**: Measures stellar resolution in pixels.
+  * **Eccentricity**: Detects star elongation (guiding errors, wind shake, sensor tilt). Target eccentricity is `< 0.42` (perfect circles).
+  * **Aspect Ratio**: Measures aspect ratio of star profiles.
+* **Endpoints**: `/equipment/camera/capture/statistics` and `/imagehistory` to retrieve historical trends.
+
+### 6.4 Fully LLM-Assisted Target Scheduling
+* **Goal**: Plan a target sequence by synthesizing weather, coordinate databases, and orbital geometry.
+* **Integrated Data Sources**:
+  1. **Weather Forecasts**: Cloud, humidity, and seeing models from APIs like Clear Outside or OpenWeather.
+  2. **Astronomical Coordinates**: Simbad/NED database lookup to resolve target coordinates.
+  3. **Moon Separation**: Orbit calculators to determine the target's angular distance from the moon.
+  4. **Local Obstructions**: Horizon profile files (`.horizon`) containing Az/Alt coordinates of local trees or buildings.
+
