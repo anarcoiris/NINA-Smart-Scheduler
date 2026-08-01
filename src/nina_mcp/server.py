@@ -24,11 +24,14 @@ from .tools import (
     flatdevice,
     focuser,
     guider,
+    launcher,
     mount,
     placeholders,
     rotator,
+    sequence_templates,
     sequencer,
     switch,
+    system_status,
     target_scheduler,
 )
 
@@ -36,18 +39,19 @@ mcp = FastMCP(
     "nina-mcp",
     instructions=(
         "Tools for controlling N.I.N.A. (Nighttime Imaging 'N' Astronomy) astrophotography "
-        "software via its Advanced API plugin (ninaAPI). Always check "
-        "nina_get_all_equipment_info first to see what's connected. Connect equipment with "
-        "nina_connect_device before using device-specific tools. All tools for camera, mount, "
-        "sequencer, filter wheel, focuser, rotator, dome, guider, switch, flat device, and "
-        "weather/safety monitors are implemented. Target Scheduler has no REST control surface "
-        "upstream; ts_* tools read/edit its SQLite database directly and ts_recent_events polls "
-        "its status events -- see tools/target_scheduler.py for the full explanation."
+        "software via its Advanced API plugin (ninaAPI). Use nina_ensure_running to locate and launch "
+        "N.I.N.A if it is not active. Always check nina_get_system_status or nina_get_all_equipment_info "
+        "first to see what's connected. Connect equipment with nina_connect_device before using "
+        "device-specific tools. All tools for camera, mount, sequencer, filter wheel, focuser, rotator, "
+        "dome, guider, switch, flat device, sequence templates, and weather/safety monitors are implemented."
     ),
 )
 
 # Core & Equipment Modules.
+launcher.register(mcp)
 equipment.register(mcp)
+system_status.register(mcp)
+sequence_templates.register(mcp)
 mount.register(mcp)
 camera.register(mcp)
 sequencer.register(mcp)

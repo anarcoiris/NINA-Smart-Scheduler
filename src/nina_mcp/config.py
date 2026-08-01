@@ -27,6 +27,8 @@ class Settings:
     # major version ships alongside v2, per the plugin's own versioning scheme.
     nina_api_base_path: str = os.environ.get("NINA_API_BASE_PATH", "/v2/api")
     request_timeout_seconds: float = float(os.environ.get("NINA_TIMEOUT", "30"))
+    # Direct full base URL override (e.g. NINA_BASE_URL="https://my-rig.ddns.net/v2/api" or via Caddy reverse proxy)
+    nina_base_url_override: str = os.environ.get("NINA_BASE_URL", "").strip()
 
     # --- Target Scheduler plugin (tcpalmer) ---
     # ninaAPI does not expose REST endpoints for Target Scheduler's project /
@@ -45,7 +47,10 @@ class Settings:
 
     @property
     def base_url(self) -> str:
+        if self.nina_base_url_override:
+            return self.nina_base_url_override.rstrip("/")
         return f"http://{self.nina_host}:{self.nina_port}{self.nina_api_base_path}"
 
 
 settings = Settings()
+
